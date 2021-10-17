@@ -1,0 +1,75 @@
+---
+title: 'Preppin Data : Week 2'
+author: "David Jackson"
+date: "10/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+library(janitor)
+library(readr)
+```
+
+## R Markdown
+
+```{r}
+rm(list=ls())
+bike_sales <- read_csv("./PD2021Wk2.csv")
+bike_sales <- clean_names(bike_sales)
+bike_sales <- bike_sales %>% mutate(brand = str_extract(model, "[A-Za-z]+"))
+
+barplot(table(bike_sales$brand))
+```
+### Total by Brand
+
+```{r}
+bike_sales %>% group_by(brand) %>%
+      summarise( 
+        Qty = sum(quantity),
+        brand_value = sum(value_per_bike) ,
+        average_value = brand_value/Qty
+      )
+```
+
+### Calcuate Total Value of Order
+
+```{r}
+bike_sales$order_value <- bike_sales$value_per_bike * bike_sales$quantity
+```
+
+### Average Per Sales by Brand and Bike Type
+
+```{r}
+bike_sales %>% group_by(brand,bike_type) %>%
+      summarise( 
+        Qty = sum(quantity),
+        brand_value = sum(value_per_bike) ,
+        average_value = brand_value/Qty
+      )
+```
+
+### Calculate Dates Between Order and Ship Dates.
+
+```{r}
+ship_dates <- read_csv("./PD2021Wk2ShipDates.csv") %>%
+  clean_names()
+ship_dates$order_date <- gsub("/","-",ship_dates$order_date)
+ship_dates <- ship_dates %>% mutate(brand = str_extract(model, "[A-Za-z]+"))
+```
+```{r}
+ship_dates$order_date <- lubridate::dmy(ship_dates$order_date)
+ship_dates$order_date <- lubridate::ymd(ship_dates$order_date)
+```
+```{r}
+ship_dates$shipping_date <- lubridate::dmy(ship_dates$shipping_date)
+ship_dates$shipping_date <- lubridate::ymd(ship_dates$shipping_date)
+```
+```{r}
+ship_dates$average_days <- difftime(ship_dates$shipping_date,ship_dates$order_date)
+ship_dates$average_days<- as.numeric(ship_dates$average_days)
+```
+
+
