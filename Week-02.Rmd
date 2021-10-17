@@ -6,11 +6,13 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE,error=FALSE,message = FALSE)
 library(tidyverse)
 library(scales)
 library(janitor)
 library(readr)
+library(lubridate)
+library(flextable)
 ```
 
 ## R Markdown
@@ -31,7 +33,7 @@ bike_sales %>% group_by(brand) %>%
         Qty = sum(quantity),
         brand_value = sum(value_per_bike) ,
         average_value = brand_value/Qty
-      )
+      ) %>% flextable::flextable()
 ```
 
 ### Calcuate Total Value of Order
@@ -48,7 +50,7 @@ bike_sales %>% group_by(brand,bike_type) %>%
         Qty = sum(quantity),
         brand_value = sum(value_per_bike) ,
         average_value = brand_value/Qty
-      )
+      ) %>% flextable::flextable()
 ```
 
 ### Calculate Dates Between Order and Ship Dates.
@@ -70,6 +72,19 @@ ship_dates$shipping_date <- lubridate::ymd(ship_dates$shipping_date)
 ```{r}
 ship_dates$average_days <- difftime(ship_dates$shipping_date,ship_dates$order_date)
 ship_dates$average_days<- as.numeric(ship_dates$average_days)
+```
+
+### Sales by Brand and Store
+
+```{r}
+ship_dates$total_value <- ship_dates$quantity * ship_dates$value_per_bike
+
+ship_dates %>% group_by(brand,store) %>%
+  summarise( total_sales = sum(total_value),
+             total_qty = sum(quantity),
+             average_shipp_days = round(mean(average_days),1)
+    
+  ) %>% flextable::flextable()
 ```
 
 
