@@ -54,9 +54,7 @@ df %>% group_by(product_sold,Quarter) %>%
   summarise(total_quantity = sum(quantity)) %>% arrange(desc(Quarter,product_sold)) %>% flextable::flextable()
 ```
 
-
 ### Sales by Store and Customers (New and Existing)
-
 
 ```{r}
 df %>% group_by(store,customer_type,product_sold) %>%
