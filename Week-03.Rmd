@@ -1,0 +1,70 @@
+---
+title: 'Preppin Data: Week 3'
+author: "David Jackson"
+date: "10/17/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, error = FALSE,message = FALSE)
+library(tidyverse)
+library(scales)
+library(lubridate)
+library(readr)
+library(readxl)
+library(janitor)
+library(flextable)
+```
+
+### Import Excel Workbook and Sheets
+
+```{r}
+rm(list=ls())
+Manchester <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Manchester")
+London <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "London")
+York <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "York")
+Leeds <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Leeds")
+Birmingham <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Birmingham")
+Week3 <- rbind(Manchester,London,York,Leeds,Birmingham)
+Week3 <- janitor::clean_names(Week3)
+Week3$date <- lubridate::dmy(Week3$date)
+```
+
+
+
+```{r}
+week3_pivot <- Week3 %>% 
+  pivot_longer(col=new_saddles:existing_bags,names_to = "products",values_to = "quantity")
+```
+
+## Descriptive Stats
+
+```{r}
+summary(Week3)
+```
+
+### Sales by Products and Quarter
+
+```{r}
+df <- separate(week3_pivot,products,into = c("customer_type","product_sold"),sep="_") 
+
+df$Quarter <- lubridate::quarter(df$date)
+
+df %>% group_by(product_sold,Quarter) %>%
+  summarise(total_quantity = sum(quantity)) %>% arrange(desc(Quarter,product_sold)) %>% flextable::flextable()
+```
+
+
+### Sales by Store and Customers (New and Existing)
+
+
+```{r}
+df %>% group_by(store,customer_type,product_sold) %>%
+  summarise(products_sold = sum(quantity)) %>% flextable::flextable()
+```
+
+
+
+
+
+

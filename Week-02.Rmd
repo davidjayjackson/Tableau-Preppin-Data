@@ -79,7 +79,7 @@ ship_dates$average_days<- as.numeric(ship_dates$average_days)
 ```{r}
 ship_dates$total_value <- ship_dates$quantity * ship_dates$value_per_bike
 
-ship_dates %>% group_by(brand,store) %>%
+ship_dates %>% group_by(store,brand) %>%
   summarise( total_sales = sum(total_value),
              total_qty = sum(quantity),
              average_shipp_days = round(mean(average_days),1)
