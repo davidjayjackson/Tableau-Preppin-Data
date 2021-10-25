@@ -1,0 +1,77 @@
+---
+title: 'Preppin Data: Week 4'
+author: "David Jackson"
+date: "10/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+library(lubridate)
+library(readr)
+library(readxl)
+library(janitor)
+library(flextable)
+```
+
+### Import Excel Workbook and Sheets
+
+```{r}
+rm(list=ls())
+Manchester <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Manchester")
+London <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "London")
+York <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "York")
+Leeds <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Leeds")
+Birmingham <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Birmingham")
+Target <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Target") 
+```
+```{r}
+Week4 <- rbind(Manchester,London,York,Leeds,Birmingham)
+Week4 <- janitor::clean_names(Week4)
+```
+
+```{r}
+Week4$date <- lubridate::dmy(Week4$date)
+Week4$quarter <- lubridate::quarter(Week4$date)
+```
+
+```{r}
+sales_targets <- cbind(Week4,Target)
+```
+
+### Final Data Cleaning?
+
+```{r}
+sales_targets <- sales_targets %>% select(store:quarter,target)
+
+sales_targets <- sales_targets %>% select(store,date,quarter,target,new_saddles:existing_bags)
+```
+
+## Pivot on Store,date,quarter,target
+
+```{r}
+sales_longer <- sales_targets %>% pivot_longer(cols=new_saddles:existing_bags,values_to = "Sales",names_to = "Product"
+                                                )
+```
+
+## Total Sales by Quarter and Store
+
+```{r}
+sales_summary <- sales_longer %>% group_by(quarter,store) %>%
+  summarise(product_sold = sum(Sales))
+           
+```
+```{r}
+sales_Join <- left_join(sales_summary,Target)
+```
+
+```{r}
+sales_Join$Diff <- sales_Join$product_sold - sales_Join$target
+```
+```{r}
+quarter_sales <- sales_Join %>% arrange(quarter,desc(Diff)) 
+
+```
+
