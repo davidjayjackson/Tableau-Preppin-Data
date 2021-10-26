@@ -25,9 +25,12 @@ London <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "London")
 York <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "York")
 Leeds <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Leeds")
 Birmingham <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Birmingham")
+Target <- read_excel("./Data/PD2021Wk3Input.xlsx",sheet = "Target")
+
 Week3 <- rbind(Manchester,London,York,Leeds,Birmingham)
 Week3 <- janitor::clean_names(Week3)
 Week3$date <- lubridate::dmy(Week3$date)
+df$Quarter <- lubridate::quarter(df$date)
 ```
 
 
@@ -48,7 +51,7 @@ summary(Week3)
 ```{r}
 df <- separate(week3_pivot,products,into = c("customer_type","product_sold"),sep="_") 
 
-df$Quarter <- lubridate::quarter(df$date)
+
 
 df %>% group_by(product_sold,Quarter) %>%
   summarise(total_quantity = sum(quantity)) %>% arrange(desc(Quarter,product_sold)) %>% flextable::flextable()
