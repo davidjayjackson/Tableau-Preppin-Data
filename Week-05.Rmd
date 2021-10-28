@@ -1,0 +1,59 @@
+---
+title: 'Preppin Data: Week 05'
+author: "David Jackson"
+date: "10/26/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+library(lubridate)
+library(readr)
+library(readxl)
+library(janitor)
+library(flextable)
+```
+
+## 2021: Week 5 - Dealing with Duplication
+
+The dataset we'll be working with for this challenge follows the same theme as the Fringe Festival. We have information relating to which of our Clients are attending our training sessions. Also included in our dataset is which Account Managers look after which Clients. However, we have historical information about Account Ownership which is leading to duplication. So how can we fix it? (https://preppindata.blogspot.com/2021/02/2021-week-5-dealing-with-duplication.html)
+
+## Requirements
+* If you're new to the technique of deduplicating data, then check out this blog post for some helpful thoughts about how to approach this challenge.
+
+* For each Client, work out who the most recent Account Manager is (help)
+* Filter the data so that only the most recent Account Manager remains (help)
+* Be careful not to lose any attendees from the training sessions!
+* In some instances, the Client ID has changed along with the Account Manager. Ensure only the most recent Client ID remains
+
+```{r}
+rm(list=ls())
+client_info <- read_csv("./Data/Joined Dataset.csv")
+client_info <- clean_names(client_info)
+client_info$index <- row.names(client_info)
+```
+```{r}
+client_info %>% na.omit() %>% count(client,account_manager,sort = T) 
+
+
+```
+
+```{r}
+df <-client_info %>% group_by(client) %>%
+        summarise( first_manager = first(account_manager),
+                   last_manager = last(account_manager),
+                   first_id = first(client_id),
+                   last_id = last(client_id)) 
+  
+
+short_list <- df %>% filter(first_manager != last_manager)
+```
+
+### Filter out changed client ids
+
+```{r}
+client_info %>% filter(!client_id %in% c(970,))
+```
+

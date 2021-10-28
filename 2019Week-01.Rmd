@@ -1,0 +1,100 @@
+---
+title: "Data Preppin Week 1"
+author: "David Jackson"
+date: "10/27/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,error = FALSE,message = FALSE)
+library(tidyverse)
+library(scales)
+library(janitor)
+library(readxl)
+library(timetk)
+```
+
+## Welcome to your first Preppin' Data challenge.
+
+### Requirements
+
+* ** Make a date that will work in Tableau Desktop
+* **Work out the total car sales per month / per car dealership
+* Retain the car sales per colour columns
+* Export the file 
+* Due to the way Tableau Prep works, your output:
+* Might not have the same row or column order as our output
+* Will have the same number of columns (7)
+* Will have the same number of rows (48)
+
+```{r}
+rm(list=ls())
+car_sales <- read_excel("./Data/2019Week-01.xlsx")
+car_sales <- remove_empty(car_sales,which = c("rows","cols"))
+car_sales <- clean_names(car_sales)
+```
+
+### Calculate Monthly Salse by Dealer
+
+```{r}
+car_sales %>% group_by(dealership) %>%
+  summarise_by_time(.date_var = date,.by ="month",value = sum(total_cars_sold))
+```
+
+```{r}
+cars_color <- car_sales %>% select(dealership,date,when_sold_month,when_sold_year,red_cars:blue_cars) %>% pivot_longer(cols=red_cars:blue_cars,names_to = "Auto",values_to = "Total_sold")
+```
+
+### Total Sales by Date
+
+```{r}
+car_sales %>% group_by(date) %>%
+    summarise(total_sales = sum(total_cars_sold)) %>%
+  ggplot(aes(x=date,y=total_sales)) + geom_line() +
+  labs(title = "Total Cars Sales by Date",y="Quantity Sold") +
+  scale_y_continuous(labels = comma_format())
+```
+
+### Total Car Sales by Month
+
+```{r}
+car_sales %>% group_by(date) %>%
+  summarise_by_time(.date_var = date,.by ="month",value = sum(total_cars_sold)) %>% 
+  ggplot(aes(x=date,y=value)) + geom_col()
+```
+
+### Total Quantity Sold by Colour
+
+```{r}
+cars_color %>% group_by(Auto,when_sold_year) %>% 
+  summarise(total_colour = sum(Total_sold)) %>%
+  ggplot(aes(x=reorder(Auto,total_colour),y=total_colour,fill=Auto)) + geom_col() + facet_wrap(~when_sold_year) +
+  theme(axis.text.x=element_blank()) +
+  labs(title = "Quantity Sold by Year and Colour",
+       y="Total Quantity Sold",x="")
+```
+
+## Analysis by Car Dealership
+
+```{r}
+car_sales %>% ggplot(aes(x=date,y=total_cars_sold,col=dealership,group = dealership),lwd = 1) +
+  geom_line() + labs(title = "Total Cars Sold by Dealership",
+                    x="Date", y="Quantity Sold")
+```
+
+### Dealership / Autos Sold by Colour
+
+```{r}
+cars_color %>% group_by(dealership,Auto) %>%
+  summarise_by_time(.date_var = date,.by ="month",value = sum(Total_sold)) %>% ggplot(aes(x=date,y=value,fill=Auto)) + geom_col() +
+  facet_wrap(~dealership,ncol=1) +
+  labs(title = "Sales by Dearlership and  Auto Color",x="Month Sold",
+       y="Quantity Sold") +  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+cars_color %>% group_by(dealership,Auto) %>%
+  summarise_by_time(.date_var = date,.by ="quarter",value = sum(Total_sold)) %>% ggplot(aes(x=date,y=value,fill=dealership)) + geom_col(stat = "identity", position = 'dodge') + facet_wrap(~Auto,ncol=1) +
+  labs(title = "Car Sales By Quarter",y="Quantity Sold",x="Quarte Sold")
+```
+
