@@ -1,0 +1,104 @@
+---
+title: 'Preppin Data: 2019 Week 3'
+author: "David Jackson"
+date: "10/31/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+library(janitor)
+library(lubridate)
+library(readxl)
+```
+
+## Scenario:
+
+You work for a mobile / cell phone company. You boss asks you to pull together the revenue report of your current batch of contracts (sadly there are only four contracts!). They need to know how much revenue is generated each month from these contracts whilst they are 'live' (ie from their start date until 'x' months in the future when the contract runs out).
+
+## Requirements for this week:
+
+* Import the file
+* Make sure you use both sheets
+*  Use one sheet to help you create a row of data for each month the person's contract is 'live' for
+* Remove unnecessary fields of data
+* Output for use within Tableau Desktop
+* Recreate the viz
+
+
+```{r}
+rm(list = ls())
+contracts <- read_excel("./Data/2019Week03.xlsx")
+contracts$Start_Date <- lubridate::dmy(contracts$Start_Date)
+```
+
+
+## Carl
+
+
+```{r}
+carl <- data.frame(date = ymd('2018-12-13'), month_seq = 0:23) %>% mutate(month_date = date %m+% months(month_seq))
+carl$Name <- "Carl"
+carl$Cost <- 20
+carl$Length <- 23
+```
+
+
+##  Jonathan
+
+
+```{r}
+jonathan <- data.frame(date = ymd('2019-02-22'), month_seq = 0:5) %>% mutate(month_date = date %m+% months(month_seq))
+jonathan$Name <- "Jonathan"
+jonathan$Cost <- 15
+jonathan$Length <- 5
+```
+
+##  Andy
+
+```{r}
+andy <- data.frame(date = ymd('2018-10-17'), month_seq = 0:11) %>% mutate(month_date = date %m+% months(month_seq))
+andy$Name <- "Andy"
+andy$Cost <- 45
+andy$Length <- 11
+```
+
+##  Sophie
+
+```{r}
+sophie <- data.frame(date = ymd('2018-11-19'), month_seq = 0:11) %>% mutate(month_date = date %m+% months(month_seq))
+sophie$Name <- "Sophie"
+sophie$Cost <- 30
+sophie$Length <- 11
+```
+
+## Combine data frames
+
+```{r}
+df <- rbind(carl,jonathan,andy,sophie)
+```
+
+### Summary by Month
+
+```{r}
+df <- df %>% mutate (Month = (floor_date(month_date,unit ="month")))
+
+```
+```{r}
+df_month <- df %>% group_by(Month) %>%
+  summarise(monthly_cost = sum(Cost)) 
+df_month
+
+```
+### Big Plot
+
+```{r}
+ggplot(df_month) + geom_col(aes(x=Month,y=monthly_cost))
+```
+
+```{r}
+
+```
+
