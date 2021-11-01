@@ -12,7 +12,9 @@ example_data$start_date <- lubridate::dmy(example_data$Start_Date)
 #   lenght_of_contract = c(24, 6, 12, 12),
 #   start_date = c("2018-12-13", "2019-02-22", "2018-10-17", "2018-11-19") %>% ymd()
 # )
-
+##
+## A big shoutout to isomore from streameRs on Discord
+##
 monthly_costs <- example_data %>%
   rename(monthly_cost =Monthly_Cost) %>%
   rename(lenght_of_contract = Contract_Length) %>%
