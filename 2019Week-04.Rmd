@@ -1,0 +1,111 @@
+---
+title: 'Preppin Data: 2019 Week 4'
+author: "David Jackson"
+date: "11/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,error=FALSE,message = FALSE)
+library(tidyverse)
+library(lubridate)
+library(readxl)
+library(janitor)
+library(scales)
+library(tidyr)
+```
+
+# San Antonio Spurs
+
+Hi Points = Most points scored by a single player during the game
+Hi Rebounds = Most times a player has recovered possession after a missed shot
+Hi Assists = Most times a player has passed the ball to another player who then scored.
+
+
+We have given you data just about Carl's favourite team, the San Antonio Spurs. You will obviously need to clean-up the data, but can then use some other functions in Prep Builder to help you answer the following questions.
+
+1. In games won by the Spurs, which player most often scores the most points?
+2. In games lost by the Spurs, which player most often scores the most points?
+3. What combination of players scores the most points, rebounds and assists the most frequently?
+4. Which player is the second most frequent at gaining the most assists in a game?
+5. With the answer to Q4, where do all these games happen: Home or Away?
+6. Which player scored the most points in games in October 2018 the most frequently?
+
+
+## Requirements:
+
+Import the file
+Fix some date issues!
+Split the "Hi-" categories up so player and value is separate
+Determine whether each game was played by the Spurs: Home or Away 
+Determine whether the Spurs won or lost each game
+Get rid of unrequired columns
+
+### Read In Data and Example Output
+#### Answer Sheet
+
+```{r}
+rm(list=ls())
+answer_sheet <- read_csv("./Data/2019Week04- Output.csv") %>%
+  janitor::clean_names()
+```
+
+### NBA Data Cleaning
+
+```{r}
+raw_data <- read_excel("./Data/2019Week-04.xlsx") %>% 
+  janitor::clean_names()
+raw_data$opponent <- gsub("vs","1",raw_data$opponent)
+raw_data$opponent <- gsub("@","0",raw_data$opponent)
+raw_data$w_l <- gsub("_","-",raw_data$w_l)
+raw_data$X <- parse_number(raw_data$opponent)
+raw_data$home_or_away <- ifelse(raw_data$X ==1,"Home","Away")
+raw_data$win_or_loss <- substr(raw_data$result,1,1)
+
+raw_data <- raw_data %>% mutate(opponent_clean = str_extract(opponent, "[A-Za-z]+"))
+
+```
+
+#### Pull out Player Name and Points from HI Point Column
+
+```{r}
+raw_data <- raw_data %>% mutate(hi_points_player = str_extract(hi_points, "[A-Za-z]+"))
+
+raw_data$hi_points_value <- parse_number(raw_data$hi_points)
+```
+
+#### Pull out Player Name and Points from HI Rebounds Column
+
+```{r}
+raw_data <- raw_data %>% mutate(hi_rebounds_player = str_extract(hi_rebounds, "[A-Za-z]+"))
+
+raw_data$hi_rebounds_value <- parse_number(raw_data$hi_rebounds)
+```
+
+#### Pull out Player Name and Points from HI Assist Column
+
+```{r}
+raw_data <- raw_data %>% mutate(hi_assist_player = str_extract(hi_assists, "[A-Za-z]+"))
+
+raw_data$hi_assist_value <- parse_number(raw_data$hi_assists)
+```
+
+#### Semi Final Output
+
+```{r}
+cleaned_data <- raw_data %>% select(opponent_clean,hi_assist_player,
+                                     hi_assist_value,hi_rebounds_player,
+                                     hi_rebounds_value,hi_points_player,
+                                     hi_points_value,win_or_loss,
+                                     home_or_away,date,result,w_l)
+cleaned_data$hi_assist_player <- as.factor(cleaned_data$hi_assist_player)
+cleaned_data$hi_rebounds_player <- as.factor(cleaned_data$hi_rebounds_player)
+cleaned_data$hi_points_player <- as.factor(cleaned_data$hi_points_player)
+```
+
+## Dlookr Table Summary
+
+```{r}
+cleaned_data %>% dlookr::diagnose_numeric() %>% flextable::flextable()
+```
+
