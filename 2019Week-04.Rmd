@@ -57,6 +57,7 @@ raw_data <- read_excel("./Data/2019Week-04.xlsx") %>%
   janitor::clean_names()
 raw_data$opponent <- gsub("vs","1",raw_data$opponent)
 raw_data$opponent <- gsub("@","0",raw_data$opponent)
+raw_data$opponent <- gsub(" ","_",raw_data$opponent)
 raw_data$w_l <- gsub("_","-",raw_data$w_l)
 raw_data$X <- parse_number(raw_data$opponent)
 raw_data$home_or_away <- ifelse(raw_data$X ==1,"Home","Away")
@@ -66,12 +67,20 @@ raw_data <- raw_data %>% mutate(opponent_clean = str_extract(opponent, "[A-Za-z]
 
 ```
 
+```{r}
+raw_data <-  separate(raw_data,w_l, c("wins","loss"),sep = "-")
+```
+
+
 #### Pull out Player Name and Points from HI Point Column
 
 ```{r}
 raw_data <- raw_data %>% mutate(hi_points_player = str_extract(hi_points, "[A-Za-z]+"))
 
 raw_data$hi_points_value <- parse_number(raw_data$hi_points)
+raw_data %>% count(hi_points_player,sort =TRUE) %>%
+  ggplot() + geom_col(aes(x=reorder(hi_points_player,n),y=n)) +
+  labs(title = "Leading Scorer",x="Player's Name",y="Number of Game as Leading scorer")
 ```
 
 #### Pull out Player Name and Points from HI Rebounds Column
@@ -80,6 +89,10 @@ raw_data$hi_points_value <- parse_number(raw_data$hi_points)
 raw_data <- raw_data %>% mutate(hi_rebounds_player = str_extract(hi_rebounds, "[A-Za-z]+"))
 
 raw_data$hi_rebounds_value <- parse_number(raw_data$hi_rebounds)
+
+raw_data %>% count(hi_rebounds_player,sort =TRUE) %>%
+  ggplot() + geom_col(aes(x=reorder(hi_rebounds_player,n),y=n)) +
+  labs(title = "Player with Most Rebounds(per Game)",x="Player's Name",y="Number of Game as Leading Rebounds")
 ```
 
 #### Pull out Player Name and Points from HI Assist Column
@@ -88,16 +101,21 @@ raw_data$hi_rebounds_value <- parse_number(raw_data$hi_rebounds)
 raw_data <- raw_data %>% mutate(hi_assist_player = str_extract(hi_assists, "[A-Za-z]+"))
 
 raw_data$hi_assist_value <- parse_number(raw_data$hi_assists)
+
+  raw_data %>% count(hi_assist_player,sort =TRUE) %>%
+  ggplot() + geom_col(aes(x=reorder(hi_assist_player,n),y=n)) +
+  labs(title = "Player with Most Assist(per Game)",x="Player's Name",y="Number of Game as Leading Assist")
+  
 ```
 
 #### Semi Final Output
 
 ```{r}
-cleaned_data <- raw_data %>% select(opponent_clean,hi_assist_player,
+cleaned_data <- raw_data %>% select(date,opponent_clean,wins,loss,hi_assist_player,
                                      hi_assist_value,hi_rebounds_player,
                                      hi_rebounds_value,hi_points_player,
                                      hi_points_value,win_or_loss,
-                                     home_or_away,date,result,w_l)
+                                     home_or_away,result)
 cleaned_data$hi_assist_player <- as.factor(cleaned_data$hi_assist_player)
 cleaned_data$hi_rebounds_player <- as.factor(cleaned_data$hi_rebounds_player)
 cleaned_data$hi_points_player <- as.factor(cleaned_data$hi_points_player)
@@ -109,3 +127,14 @@ cleaned_data$hi_points_player <- as.factor(cleaned_data$hi_points_player)
 cleaned_data %>% dlookr::diagnose_numeric() %>% flextable::flextable()
 ```
 
+### Count the number of Wins/Losses by Opponent
+
+```{r}
+cleaned_data %>% count(opponent_clean,win_or_loss,sort = T) %>%
+  ggplot() + 
+  geom_col(aes(x=opponent_clean,y=n,fill=win_or_loss)) +
+  theme(axis.text.x = element_text(angle = 90))
+  
+```
+
+,
