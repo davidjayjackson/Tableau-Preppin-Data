@@ -17,9 +17,9 @@ library(tidyr)
 
 # San Antonio Spurs
 
-Hi Points = Most points scored by a single player during the game
-Hi Rebounds = Most times a player has recovered possession after a missed shot
-Hi Assists = Most times a player has passed the ball to another player who then scored.
+* Hi Points = Most points scored by a single player during the game
+* Hi Rebounds = Most times a player has recovered possession * after a missed shot
+* Hi Assists = Most times a player has passed the ball to another player who then scored.
 
 
 We have given you data just about Carl's favourite team, the San Antonio Spurs. You will obviously need to clean-up the data, but can then use some other functions in Prep Builder to help you answer the following questions.
@@ -137,4 +137,67 @@ cleaned_data %>% count(opponent_clean,win_or_loss,sort = T) %>%
   
 ```
 
-,
+### In games won by the Spurs, which player most often scores the most points?
+
+```{r}
+cleaned_data %>% filter(win_or_loss =="W") %>%
+  group_by(hi_points_player) %>% 
+  summarise(Count = n()) %>%
+  ggplot(aes(x=reorder(hi_points_player,Count),y=Count)) +
+  geom_col() + labs(title = "Player With Most Hi Point Games When Game is won")
+```
+
+### In games lost by the Spurs, which player most often scores the most points?
+
+```{r}
+cleaned_data %>% filter(win_or_loss =="L") %>%
+  group_by(hi_points_player) %>% 
+  summarise(Count = n()) %>%
+  ggplot(aes(x=reorder(hi_points_player,Count),y=Count)) +
+  geom_col() + labs(title = "Player With Most Hi Point Games When Game is Lost",x="Hi Scorer Player")
+```
+
+### 3. What combination of players scores the most points, rebounds and assists the most frequently?
+
+```{r}
+
+```
+
+### 4. Which player is the second most frequent at gaining the most assists in a game?
+
+```{r}
+cleaned_data %>% count(hi_assist_player,sort = T) %>%
+  ggplot(aes(x=reorder(hi_assist_player,n),n)) + geom_col(aes(fill=hi_assist_player)) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  labs(title ="Players with the Most Assist",
+       x="Players",y="Number of Games")
+
+```
+
+### 5. With the answer to Q4, where do all these games happen: Home or Away?
+
+```{r}
+cleaned_data %>% count(hi_assist_player,home_or_away,sort = T) %>%
+  ggplot(aes(x=reorder(hi_assist_player,n),n)) + geom_col(aes(fill=hi_assist_player)) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  labs(title ="Players with the Most Assist",
+       x="Players",y="Number of Games") +
+  facet_wrap(~home_or_away)
+
+```
+
+
+### 6. Which player scored the most points in games in October 2019 the most frequently?
+
+```{r}
+cleaned_data %>% filter(date >="2019-10-01" & date <="2019-10-31") %>%
+  count(hi_points_player,sort =T) %>%
+  ggplot(aes(x=hi_points_player,y=n)) + geom_col() +
+  labs(title = "Players with the Most Hi Point Games in Oct. 2019",
+       x = "Hi Point Player",y="Number of Times")
+```
+
+
+
