@@ -1,0 +1,71 @@
+---
+title: 'Week 5: Balances, statements, and complaints'
+author: "David Jackson"
+date: "11/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+library(readxl)
+```
+
+## Balances, statements, and complaints
+
+*Requirements:*
+
+* Input data set
+* Create a date per day
+* Determine how the customer contacted the company
+* Create a separate column for the Policy Number
+* Remove contacts that don't have a Policy Number
+* Identify whether the contact was about a balance check, getting a statement or raising a complaint (it's all our boss cares about)
+* Get rid of unrequired columns
+
+*Output:*
+
+* 15 Rows (16 including the column)
+* 6 Columns
+* One row per day, per customer and policy
+
+### Read in Excel Data
+
+```{r}
+rm(list=ls())
+cust_service <- read_excel("./Data/2019Week-05.xlsx")
+```
+```{r}
+
+cust_service<- cust_service %>% mutate(policy = str_extract(Notes, "#[0-9]+")) %>% drop_na()
+```
+
+###  Pull Out Contact Method
+
+
+```{r}
+cust_service<- cust_service %>% mutate(Contact = str_extract(Notes, "Called|Email|")) 
+```
+
+## Reason for Contact
+
+```{r}
+cust_service <- cust_service %>% mutate(reason = str_extract(Notes, "[Bb]alance|[Ss]tatement|[Cc]omplain|[Aa]ddress|[Nn]ew|[Pp]ostcode")) 
+```
+
+### Final Solution
+
+```{r}
+cust_service <- cust_service %>% janitor::clean_names()
+cust_service <- cust_service %>% select(date,customer_id,policy,reason) 
+  
+```
+```{r}
+write.csv(cust_service,file = "customers.csv",row.names = F)
+```
+```{r}
+customer_final <- cust_service %>% dplyr::mutate(filler = rep(1)) %>% tidyr::pivot_wider(names_from = reason, values_from = filler, values_fill = 0)
+```
+
+
