@@ -1,0 +1,29 @@
+---
+title: 'Chin and Beard Shop: 2019 Week 6'
+author: "David Jackson"
+date: "11/7/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+library(janitor)
+library(readxl)
+```
+
+## Soap Sales Profits
+
+```{r}
+rm(list = ls())
+company <- read_excel("./Data/2019Week6Input.xlsx",sheet ="Company")
+sales <- read_excel("./Data/2019Week6Input.xlsx",sheet ="Sales")
+cost <- read_excel("./Data/2019Week6Input.xlsx",sheet ="cost")
+```
+```{r}
+company <- clean_names(company)
+sales <- clean_names(sales)
+cost <- clean_names(cost)
+```
+
