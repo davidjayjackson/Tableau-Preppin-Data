@@ -1,0 +1,52 @@
+---
+title: 'C&BS Co: scouring Twitter feedback'
+author: "David Jackson"
+date: "11/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(tidytext)
+```
+
+## R Markdown
+
+
+```{r}
+rm(list=ls())
+tweets <- readxl::read_excel("./Data/2019PreppingDataWk 9.xlsx")
+```
+```{r}
+data(stop_words)
+tweets_words <- tweets %>%
+  unnest_tokens(word, Tweet) %>%
+  anti_join(stop_words) %>% count(word, sort = TRUE)
+```
+```{r}
+tweets_words %>% top_n(5) %>% ggplot(aes(x=word,y=n)) + geom_col() +
+  coord_flip()
+```
+```{r}
+tweets_words %>% top_n(5) %>% ggplot(aes(x=reorder(word,n),y=n/sum(n))) + geom_col() +
+  coord_flip()
+```
+
+### Word Cloud
+
+```{r}
+library(wordcloud)
+tweets_words %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 50))
+```
+
+```{r}
+data(stop_words)
+tweets_ngrams <- tweets %>%
+  unnest_tokens(word, Tweet,token = "ngrams", n = 5) %>%
+  anti_join(stop_words) %>% count(word, sort = TRUE)
+```

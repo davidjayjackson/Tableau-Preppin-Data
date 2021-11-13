@@ -1,0 +1,56 @@
+---
+title: "Data  Preppin 2019 Week 6"
+author: "David Jackson"
+date: "11/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(scales)
+```
+
+### Chin & Beard Suds Co, we’ve been informed by our distribution company
+
+### The Scenario
+
+A shipping distribution company transports valuable cargo for customers all around the world using three different types of boat. They keep the basic details for each departure in a table called Departure Details.
+
+They sell and allocate space on their departures based on the weight and volume of the cargo. They keep the details of each allocation in a table called Allocation Details.
+
+In the last 3 months they’ve begun noticing issues where more weight or volume is being allocated than the boats can actually carry. This means customers are turning up at the port with cargo which the company is then having to turn away and refund. They want to identify and flag departures with weight or volume allocation issues before the day of departure.
+
+### The Requirements
+
+* Download the input file.
+* Figure out how much weight and volume has been allocated for each departure in the Allocation Details table.
+* Find a way to flag departures on the Departure Details table which * have had too much cargo weight or volume allocated.
+
+```{r}
+rm(list =ls())
+departure <- readxl::read_excel("./Data/2019Week7Challenge.xlsx") 
+
+allocation <- readxl::read_excel("./Data/2019Week7Challenge.xlsx",sheet ="allocation")
+departure <- clean_names(departure) 
+allocation <- clean_names(allocation) %>% select(-product_type,-salesperson)
+departure <- departure %>% rename(date = departure_date)
+```
+
+### Seperate key fields
+
+```{r}
+departure_id <- departure %>% separate(date,into = c("yyyy","mm","dd"))
+
+
+allocation_id <-allocation %>% separate(departure_id,into = c("ship_id","id","mm","dd","yyyy"))
+
+allocation_id <- allocation_id %>% unite(ship_id,ship_id:id,sep="-")
+```
+
+```{r}
+left_join(departure_id,allocation_id,by = c("ship_id","mm","yyyy"))
+```
+

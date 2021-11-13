@@ -1,0 +1,86 @@
+---
+title: "Data Preppin 2019 Week 8"
+author: "David Jackson"
+date: "11/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(readxl)
+```
+
+## C&BS Co: accounting for slippery thieves
+
+As we saw last week, Profits are rolling in nicely from Chin & Beard Suds Co. but all is not perfect at the company. Recently our Suds shops have been the victim of a number of thefts. Thankfully our systems allow our stores to record the thefts, when the theft occurred and when we adjusted the inventory to reflect the reduced amounts.
+
+* Input data from both sheets
+* Update Store IDs to use the Store Names
+* Clean up the Product Type to just return two products types: Bar and Liquid
+* Measure the difference in days between when the theft occurred  and when the stock was updated
+* Measure the variance in stolen stock and inventory adjustment 
+
+### Input data from both sheets
+
+
+```{r}
+rm(list=ls())
+branch <- read_excel("./Data/2019Week8Input.xlsx",sheet = "Branch") %>% clean_names()
+theft <- read_excel("./Data/2019Week8Input.xlsx",sheet = "Theft") %>%
+  clean_names()
+
+```
+
+### Update Store IDs to use the Store Names
+
+```{r}
+branch_name <- branch %>% left_join(theft) %>% select(-store_id) %>% drop_na()
+
+
+```
+
+### Clean up the Product Type to just return two products types: Bar and Liquid
+
+```{r}
+
+branch_name$type <- ifelse(branch_name$type =="Luquid","Liquid",branch_name$type)
+branch_name$type <- ifelse(branch_name$type =="Bar","Soap Bar",branch_name$type)
+```
+
+### Item Stolen the Most
+
+```{r}
+branch_name %>% filter(action == "Theft") %>% count(type,sort =T) %>%
+  ggplot(aes(x=type,n)) + geom_col() + labs(title = "Number of Times Product was Stolen by Type",x="Product Type",y="Number of Timse Product was Stolen")
+```
+
+```{r}
+branch_name %>% filter(action == "Theft") %>% group_by(type) %>% 
+  summarise(total_thefts = sum(quantity)) %>%
+  ggplot(aes(x=type,total_thefts)) + geom_col() + labs(title = "Quantity by Soap Type ",x="Soap Type",y="Quantity Stolen")
+```
+
+```{r}
+branch_name %>% count(branch,action) %>% arrange(branch,action)
+branch_name %>% count(branch,action) %>% arrange(branch,action) %>%
+  ggplot() + geom_col(aes(x=action,y=n)) + facet_wrap(~branch)
+```
+
+#### Measure the variance in stolen stock and inventory adjustment
+
+```{r}
+branch_name %>% group_by(branch,type) %>%
+  summarise( variance = sum(quantity)) %>%
+  ggplot() + geom_col(aes(x=branch,y=variance)) + facet_wrap(~type)
+```
+
+### Requirement
+
+```{r}
+branch_distinct <- branch_name %>% select(branch,crime_ref_number) %>% distinct()
+
+```
+
+

@@ -52,6 +52,10 @@ march_summary <-march_sales %>% select(date,country,category,profit)
 ```
 ```{r}
 company_updated <- rbind(company,march_summary)
+company_updated$category <- gsub("Bar Soap","Bar",company_updated$category)
+company_updated$category <- gsub("Liquid Soap","Liquid",company_updated$category)
+company_updated$category <- gsub("Liquid soap","Liquid",company_updated$category)
+
 ```
 
 ## Total Profit by Month
