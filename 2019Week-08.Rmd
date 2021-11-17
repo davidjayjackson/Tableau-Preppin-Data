@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(janitor)
 library(readxl)
+library(writexl)
 ```
 
 ## C&BS Co: accounting for slippery thieves
@@ -81,6 +82,14 @@ branch_name %>% group_by(branch,type) %>%
 ```{r}
 branch_distinct <- branch_name %>% select(branch,crime_ref_number) %>% distinct()
 
+```
+```{r}
+branchtheft <- left_join(branch_distinct,theft) 
+branchtheft$date <- as.Date(branchtheft$date)
+  
+```
+```{r}
+write_xlsx(branchtheft,"./branchtheft.xlsx")
 ```
 
 
