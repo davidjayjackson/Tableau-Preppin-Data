@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(janitor)
 library(tidytext)
+library(writexl)
 ```
 
 ## R Markdown
@@ -25,12 +26,43 @@ tweets_words <- tweets %>%
   unnest_tokens(word, Tweet) %>%
   anti_join(stop_words) %>% count(word, sort = TRUE)
 ```
+
+### Bosse's Requirement
+* Table of Key words matched to Tweet.
+
 ```{r}
-tweets_words %>% top_n(5) %>% ggplot(aes(x=word,y=n)) + geom_col() +
+keywords <- read_csv("keywords.csv")
+tweets <- read_csv("tweets.csv", col_names = "tweet")
+
+tweet_matched <- keywords %>% 
+  mutate(tweet = map(word, 
+                     ~ with(tweets, 
+                            tweet[grepl(.x, tweet, ignore.case = TRUE)]))) %>% 
+  unnest(tweet) 
+
+head(tweet_matched,90)
+```
+
+#### More Cleaning
+
+```{r}
+df <- tweets_words
+df$word <- ifelse(df$word =="bars","bar",df$word)
+df$word <- ifelse(df$word =="bubbly","bubbles",df$word)
+```
+
+
+```{r}
+df %>% top_n(5) %>% ggplot(aes	
+(x=word,y=n)) + geom_col() +
   coord_flip()
 ```
 ```{r}
 tweets_words %>% top_n(5) %>% ggplot(aes(x=reorder(word,n),y=n/sum(n))) + geom_col() +
+  coord_flip()
+```
+```{r}
+tweets_words %>% top_n(10) %>% ggplot(aes(x=reorder(word,n),y=n/sum(n))) + geom_col() +
   coord_flip()
 ```
 
@@ -38,15 +70,31 @@ tweets_words %>% top_n(5) %>% ggplot(aes(x=reorder(word,n),y=n/sum(n))) + geom_c
 
 ```{r}
 library(wordcloud)
-tweets_words %>%
+df %>%
   anti_join(stop_words) %>%
   count(word) %>%
   with(wordcloud(word, n, max.words = 50))
 ```
 
 ```{r}
-data(stop_words)
-tweets_ngrams <- tweets %>%
-  unnest_tokens(word, Tweet,token = "ngrams", n = 5) %>%
-  anti_join(stop_words) %>% count(word, sort = TRUE)
+nrc_joy <- get_sentiments("nrc")
+df %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE) %>% ggplot(aes(x=word,y=n)) +
+  geom_col() + coord_flip()
 ```
+```{r}
+df %>%
+  inner_join(get_sentiments("afinn")) %>%
+  count(word, sort = TRUE) %>% ggplot(aes(x=word,y=n)) +
+  geom_col() + coord_flip()
+```
+
+```{r}
+df %>%
+  inner_join(get_sentiments("nrc")) %>%
+  count(word, sort = TRUE) %>% ggplot(aes(x=word,y=n)) +
+  geom_col() + coord_flip()
+```
+
+
